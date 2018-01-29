@@ -1,6 +1,6 @@
 # blockchain-go
 
-Simple and experimental Blockchain implementation with PoW.
+Simple and experimental Blockchain implementation with PoW. I'm working on it for learning the basic concepts, it's still under development. 
 
 ## Usage
 
