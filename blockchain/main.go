@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/azer/blockchain"
+	"github.com/azer/blockchain-go"
 )
 
 func main() {
