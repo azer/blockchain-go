@@ -15,6 +15,18 @@ func init() {
 	DB = db
 }
 
+func AlreadyCreated() bool {
+	created := false
+
+	err := DB.Update(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(config.BlocksBucket))
+		created = bucket != nil
+		return nil
+	})
+
+	return err == nil && created
+}
+
 func LastHash() ([]byte, error) {
 	var lastHash []byte
 
@@ -27,7 +39,24 @@ func LastHash() ([]byte, error) {
 	return lastHash, err
 }
 
-func Tip() ([]byte, error) {
+func GetTip() ([]byte, error) {
+	var tip []byte
+
+	err := DB.Update(func(tx *bolt.Tx) error {
+		bucket, err := tx.CreateBucketIfNotExists([]byte(config.BlocksBucket))
+		if err != nil {
+			return err
+		}
+
+		tip = bucket.Get([]byte("l"))
+
+		return nil
+	})
+
+	return tip, err
+}
+
+func CreateTipIfNotExists(genesisBlock *Block) ([]byte, error) {
 	var tip []byte
 
 	err := DB.Update(func(tx *bolt.Tx) error {
@@ -38,29 +67,32 @@ func Tip() ([]byte, error) {
 			return nil
 		}
 
-		genesis := NewGenesisBlock()
 		bucket, err := tx.CreateBucket([]byte(config.BlocksBucket))
 		if err != nil {
 			return err
 		}
 
-		serialized, err := genesis.Serialize()
+		serialized, err := genesisBlock.Serialize()
 		if err != nil {
 			return err
 		}
 
-		if err := bucket.Put(genesis.Hash, serialized); err != nil {
+		if err := bucket.Put(genesisBlock.Hash, serialized); err != nil {
 			return err
 		}
 
-		if err := bucket.Put([]byte("l"), genesis.Hash); err != nil {
+		if err := bucket.Put([]byte("l"), genesisBlock.Hash); err != nil {
 			return err
 		}
 
-		tip = genesis.Hash
+		tip = genesisBlock.Hash
 
 		return nil
 	})
+
+	if err != nil {
+		return nil, err
+	}
 
 	return tip, err
 }

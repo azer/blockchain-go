@@ -2,14 +2,15 @@ package blockchain
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/gob"
 	"time"
 )
 
-func NewBlock(data string, prevBlockHash []byte) *Block {
+func NewBlock(transactions []*Transaction, prevBlockHash []byte) *Block {
 	block := &Block{
 		Timestamp:     time.Now().UnixNano(),
-		Data:          []byte(data),
+		Transactions:  transactions,
 		PrevBlockHash: prevBlockHash,
 		Hash:          []byte{},
 		Nonce:         0,
@@ -26,7 +27,7 @@ func NewBlock(data string, prevBlockHash []byte) *Block {
 
 type Block struct {
 	Timestamp     int64
-	Data          []byte
+	Transactions  []*Transaction
 	PrevBlockHash []byte
 	Hash          []byte
 	Nonce         int
@@ -41,6 +42,21 @@ func (block *Block) Serialize() ([]byte, error) {
 	}
 
 	return result.Bytes(), nil
+}
+
+func (block *Block) HashTransactions() []byte {
+	var (
+		txHashes [][]byte
+		txHash   [32]byte
+	)
+
+	for _, tx := range block.Transactions {
+		txHashes = append(txHashes, tx.Id)
+	}
+
+	txHash = sha256.Sum256(bytes.Join(txHashes, []byte{}))
+
+	return txHash[:]
 }
 
 func DeserializeBlock(raw []byte) (*Block, error) {

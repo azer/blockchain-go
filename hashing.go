@@ -29,7 +29,7 @@ type ProofOfWork struct {
 func (pow *ProofOfWork) Data(nonce int) []byte {
 	return bytes.Join([][]byte{
 		pow.Block.PrevBlockHash,
-		pow.Block.Data,
+		pow.Block.HashTransactions(),
 		IntToHex(pow.Block.Timestamp),
 		IntToHex(int64(config.TargetBits)),
 		IntToHex(int64(nonce)),
@@ -41,8 +41,6 @@ func (pow *ProofOfWork) Run() (int, []byte) {
 		hashInt big.Int
 		hash    [32]byte
 	)
-
-	fmt.Println("Mining the block containing '%s'", pow.Block.Data)
 
 	nonce := 0
 	for nonce < MaxNonce {

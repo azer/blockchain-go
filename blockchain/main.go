@@ -5,16 +5,6 @@ import (
 )
 
 func main() {
-	bc, err := blockchain.NewBlockChain()
-	if err != nil {
-		panic(err)
-	}
-
-	defer bc.DB.Close()
-
-	cli := &blockchain.CLI{
-		Blockchain: bc,
-	}
-
+	cli := &blockchain.CLI{}
 	cli.Run()
 }
